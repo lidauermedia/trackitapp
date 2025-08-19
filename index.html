@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TRACKIT – Fitness & Looks Maxing Tracker</title>
+  <style>
+    :root{--hi:#FFBE00;--bg:#0e0e0e;--bg2:#001F4A;--fg:#ffffff}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:#fff}
+    header{padding:16px;background:linear-gradient(180deg,var(--bg),rgba(14,14,14,.9));position:sticky;top:0;z-index:50;text-align:center;border-bottom:1px solid #ffffff22}
+    h1{margin:0;font-size:22px;font-weight:900;text-align:center}
+    .container{padding:16px;max-width:520px;margin:0 auto 96px}
+    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+    .tab{padding:8px 0;border-radius:12px;border:1px solid #ffffff26;background:transparent;color:#fff;font-weight:800;cursor:pointer}
+    .tab.active{background:var(--hi);color:#000;border-color:transparent}
+    .card{background:#101010;border:1px solid #ffffff22;border-radius:20px;padding:16px;margin:12px 0}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .row-gap{display:flex;align-items:center;gap:8px}
+    .grid{display:grid;gap:8px}
+    .btn{background:var(--hi);color:#000;border:0;border-radius:16px;padding:10px 14px;font-weight:800;cursor:pointer}
+    .btn:active{transform:scale(.98)}
+    .btn-ghost{background:transparent;color:#fff;border:0;cursor:pointer}
+    .btn-outline{background:transparent;color:#fff;border:1px solid #ffffff33;border-radius:16px;padding:10px 14px;font-weight:800;cursor:pointer}
+    .btn-danger{background:#e74c3c;color:#fff}
+    input,select,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #ffffff26;background:#181818;color:#fff}
+    input::placeholder,textarea::placeholder{color:#ffffff77}
+    .pill{border:1px solid #ffffff26;border-radius:999px;padding:2px 6px;font-size:12px;color:#ffffffb3}
+    .muted{color:#ffffff99}
+    .muted-sm{color:#ffffff99;font-size:12px}
+    .progress{height:8px;border-radius:999px;background:#2a2a2a;overflow:hidden}
+    .progress > span{display:block;height:100%;background:var(--hi);width:0}
+    /* Calendar */
+    .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .cal-day{border:1px solid #ffffff1a;background:#151515;border-radius:12px;padding:6px;height:78px;display:flex;flex-direction:column;cursor:pointer}
+    .cal-day.hot{border-color:var(--hi)}
+    .cal-day .num{font-size:11px;color:#ffffffb3}
+    .cal-day .names{margin-top:4px;font-size:10px;line-height:12px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+    /* Modals */
+    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px;z-index:100}
+    .backdrop.show{display:flex}
+    .modal{max-width:520px;width:100%;background:#0f0f0f;border:1px solid #ffffff1a;border-radius:16px;padding:16px}
+    /* Toast */
+    .toast{position:fixed;left:0;right:0;bottom:16px;margin:0 auto;max-width:520px;padding:0 16px;z-index:99;display:none}
+    .toast.show{display:block}
+    .toast .inner{border:1px solid #ffffff1a;background:rgba(0,31,74,.92);border-radius:16px;padding:12px;display:flex;gap:8px;align-items:center}
+    /* Category grouping */
+    .cat-group{border:1px solid #ffffff22;border-radius:16px;overflow:hidden;margin:12px 0}
+    .cat-title{background:linear-gradient(180deg,rgba(0,31,74,.8),rgba(0,31,74,.35));padding:10px 12px;font-weight:900;letter-spacing:.3px}
+    .cat-body{padding:10px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>TRACKIT</h1>
+    <div class="tabs" id="tabs"></div>
+  </header>
+  <div class="container">
+    <div id="view"></div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="backdrop" id="modal">
+    <div class="modal">
+      <h3 id="modal-title">Confirm</h3>
+      <div id="modal-body" class="muted">Are you sure?</div>
+      <div class="row" style="justify-content:flex-end">
+        <button class="btn-ghost" id="modal-cancel">Cancel</button>
+        <button class="btn btn-danger" id="modal-confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day Details Modal -->
+  <div class="backdrop" id="dayModal">
+    <div class="modal">
+      <h3>Day details</h3>
+      <div id="dayModalBody" class="grid"></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn" id="dayModalClose">Close</button></div>
+    </div>
+  </div>
+
+  <!-- Track Modal -->
+  <div class="backdrop" id="trackModal">
+    <div class="modal">
+      <h3>Quick track</h3>
+      <div class="grid" style="margin-bottom:12px">
+        <div class="muted-sm" id="trackFor"></div>
+        <div class="row-gap">
+          <input type="number" id="trackPrimary" placeholder="Value" inputmode="numeric"/>
+          <input type="number" id="trackWeight" placeholder="Weight (kg, optional)" inputmode="numeric"/>
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end">
+        <button class="btn-ghost" id="trackCancel">Cancel</button>
+        <button class="btn" id="trackSave">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"><div class="inner"><span>✨</span><div><div id="toast-title" style="font-weight:800"></div><div id="toast-sub" class="muted-sm"></div></div></div></div>
+
+<script>
+(function(){
+  'use strict';
+  const LS_KEY='trackit_state_html_final_v1';
+  // local date helpers (avoid UTC shift)
+  const localISO=(d)=>{const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const da=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${da}`};
+  const todayISO=()=> localISO(new Date());
+  const fmtLabel=(iso)=> new Date(iso+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+  const uid=()=> Math.random().toString(36).slice(2)+Date.now().toString(36);
+  const TABS=['Exercises','Log','Goals','Settings'];
+
+  const state = load() || { ui:{tab:'Exercises'}, categories:['Strength','Mobility','Cardio','Aesthetics'], exercises:[] };
+
+  function load(){ try{const raw=localStorage.getItem(LS_KEY); return raw? JSON.parse(raw): null;}catch(e){ console.error(e); return null; } }
+  function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+  function $(q,root=document){ return root.querySelector(q); }
+  function el(tag,cls){ const e=document.createElement(tag); if(cls) e.className=cls; return e; }
+  function button(lbl, cls='btn'){ const b=el('button',cls); b.textContent=lbl; b.type='button'; return b; }
+  function showToast(t,sub){ const box=$('#toast'); $('#toast-title').textContent=t; $('#toast-sub').textContent=sub||''; box.classList.add('show'); clearTimeout(showToast.t); showToast.t=setTimeout(()=>box.classList.remove('show'),2000); }
+
+  // streak compute (with freeze awards)
+  function computeStreak(ex){
+    const perf=new Set(ex.logs.map(l=>l.dateISO));
+    const frozen=new Set(ex.streak?.frozenDates||[]);
+    let c=0; let d=todayISO();
+    while(true){ const did=perf.has(d), fr=frozen.has(d); if(did||fr){ if(did) c++; const prev=new Date(d+'T00:00:00'); prev.setDate(prev.getDate()-1); d=localISO(prev);} else break; }
+    const awarded=ex.streak?.awardedBy20s||0; const should=Math.floor(c/20); const newly=Math.max(0,should-awarded);
+    return {count:c, newlyEarned:newly, flameActive:c>0};
+  }
+
+  // one-time award sweep
+  (function(){ let changed=false; state.exercises=state.exercises.map(ex=>{ const r=computeStreak(ex); if(r.newlyEarned>0){ changed=true; return {...ex, streak:{ frozenDates:ex.streak?.frozenDates||[], freezeTokens:(ex.streak?.freezeTokens||0)+r.newlyEarned, awardedBy20s:(ex.streak?.awardedBy20s||0)+r.newlyEarned }};} return ex;}); if(changed) save(); })();
+
+  function renderTabs(){ const wrap=$('#tabs'); wrap.innerHTML=''; TABS.forEach(t=>{ const b=button(t,'tab'+(state.ui.tab===t?' active':'')); b.onclick=()=>{ state.ui.tab=t; save(); render(); }; wrap.appendChild(b); }); }
+
+  // ===== VIEWS =====
+  function viewExercises(){
+    const root=el('div');
+
+    // New exercise
+    const card=el('div','card');
+    const head=el('div','row'); head.append(el('div')); head.firstChild.textContent='Add Exercise'; head.firstChild.style.fontWeight='800';
+    const toggle=button('New'); head.append(toggle); card.appendChild(head);
+
+    const form=el('div','grid'); form.style.display='none'; form.style.marginTop='12px';
+    const fName=el('input'); fName.placeholder='Name *';
+    const fDesc=el('input'); fDesc.placeholder='Description (optional)';
+    const rowCat=el('div','row-gap'); const selCat=el('select'); state.categories.forEach(c=> selCat.appendChild(new Option(c,c))); rowCat.append(selCat);
+    const rowMT=el('div','row-gap'); const selMetric=el('select'); ['reps','seconds'].forEach(x=> selMetric.appendChild(new Option(x,x))); rowMT.append(selMetric);
+    const rowGoal=el('div','row-gap'); const fGoal=el('input'); fGoal.type='number'; fGoal.step='any'; fGoal.placeholder='Goal value (optional)'; const selGoalUnit=el('select'); ['kg','reps','sec'].forEach(u=> selGoalUnit.appendChild(new Option(u,u))); rowGoal.append(fGoal, selGoalUnit);
+    const submit=button('Create Exercise');
+    submit.onclick=()=>{ if(!fName.value.trim()) return alert('Name is required'); const ex={ id:uid(), name:fName.value.trim(), description:fDesc.value.trim(), category: selCat.value, metricType: selMetric.value, logs:[], pr:null, goal: fGoal.value? {value:Number(fGoal.value), unit: selGoalUnit.value}: null, streak:{ frozenDates:[], freezeTokens:0, awardedBy20s:0 } }; state.exercises.push(ex); save(); render(); fName.value=''; fDesc.value=''; fGoal.value=''; form.style.display='none'; toggle.textContent='New'; showToast('Exercise created', ex.name); };
+    form.append(fName,fDesc,rowCat,rowMT,rowGoal,submit); card.appendChild(form);
+    toggle.onclick=()=>{ const show=form.style.display==='none'; form.style.display=show?'grid':'none'; toggle.textContent=show?'Close':'New'; };
+    root.appendChild(card);
+
+    // groups
+    const groups={}; state.exercises.forEach(ex=>{ (groups[ex.category]=groups[ex.category]||[]).push(ex); });
+    if(Object.keys(groups).length===0){ const empty=el('div','muted-sm'); empty.style.textAlign='center'; empty.textContent='No exercises yet. Add your first one!'; root.appendChild(empty); }
+    Object.entries(groups).forEach(([cat,list])=>{
+      const wrap=el('div','cat-group'); const t=el('div','cat-title'); t.textContent=cat; wrap.appendChild(t); const body=el('div','cat-body'); list.forEach(ex=> body.appendChild(exerciseCard(ex))); wrap.appendChild(body); root.appendChild(wrap);
+    });
+    return root;
+  }
+
+  function exerciseCard(ex){
+    const card=el('div','card');
+    const top=el('div','row');
+    const left=el('div');
+    const title=el('div'); title.textContent=ex.name; title.style.fontWeight='800';
+    const meta=el('div','muted-sm'); const prText=ex.pr?`PR ${ex.pr.value} ${ex.pr.unit}`:null; const goalText=ex.goal?`Goal ${ex.goal.value} ${ex.goal.unit}`:null; meta.textContent=[prText,goalText].filter(Boolean).join(' · ');
+    const s=computeStreak(ex); const streak=el('div','row-gap'); const flame=el('span'); flame.textContent=s.flameActive?'🔥':''; const pill=el('span','pill'); pill.textContent=(s.count||0)+'d'; streak.append(flame,pill);
+    left.append(title,meta,streak);
+
+    const right=el('div','row-gap');
+    const bEdit=button('Edit','btn-ghost');
+    const bSaveTop=button('Save','btn-outline');
+    const bTrack=button('Track','btn');
+    right.append(bEdit,bSaveTop,bTrack);
+    top.append(left,right); card.appendChild(top);
+
+    const det=el('div','grid'); det.style.display='none'; det.style.marginTop='12px';
+    const eName=el('input'); eName.placeholder='Name'; eName.value=ex.name;
+    const eDesc=el('textarea'); eDesc.placeholder='Description (optional)'; eDesc.rows=2; eDesc.value=ex.description||'';
+    const rowCat=el('div','row-gap'); const eCat=el('select'); const cats=new Set(state.categories); if(!cats.has(ex.category)) cats.add(ex.category); [...cats].forEach(c=> eCat.appendChild(new Option(c,c))); eCat.value=ex.category; rowCat.append(eCat);
+    const rowMetric=el('div','row-gap'); const eMetric=el('select'); ['reps','seconds'].forEach(x=> eMetric.appendChild(new Option(x,x))); eMetric.value=ex.metricType; rowMetric.append(eMetric);
+    const rowGoal=el('div','row-gap'); const eGoalVal=el('input'); eGoalVal.type='number'; eGoalVal.step='any'; eGoalVal.placeholder='Goal value'; eGoalVal.value=ex.goal?ex.goal.value:''; const eGoalUnit=el('select'); ['kg','reps','sec'].forEach(u=> eGoalUnit.appendChild(new Option(u,u))); eGoalUnit.value=ex.goal?ex.goal.unit:'kg'; rowGoal.append(eGoalVal,eGoalUnit);
+
+    const rowInputs=el('div','row-gap'); const iVal=el('input'); iVal.type='number'; iVal.inputMode='numeric'; iVal.placeholder=(ex.metricType==='reps'?'Reps':'Seconds'); const iW=el('input'); iW.type='number'; iW.inputMode='numeric'; iW.placeholder='Weight (kg, optional)'; rowInputs.append(iVal,iW);
+
+    const rowActions=el('div','row-gap'); const bSave=button('Save'); const bMark=button('Mark Today ✓'); const bFreeze=button(`Use Freeze (${ex.streak?.freezeTokens||0})`,'btn-outline'); const bDelete=button('Delete','btn-danger');
+
+    function applySave(){ ex.name=eName.value.trim()||ex.name; ex.description=eDesc.value.trim(); ex.category=eCat.value; ex.metricType=eMetric.value; ex.goal = eGoalVal.value? {value:Number(eGoalVal.value), unit:eGoalUnit.value}: null; save(); render(); showToast('Saved', ex.name); }
+    bSave.onclick=applySave; bSaveTop.onclick=applySave;
+
+    bMark.onclick=()=>{ const v=iVal.value?Number(iVal.value):0; const w=(iW.value!==''? Number(iW.value):undefined); logToday(ex,{value:v,weight:w}); iVal.value=''; iW.value=''; punch(); };
+    bFreeze.disabled=(ex.streak?.freezeTokens||0)<=0 || ex.logs.some(l=>l.dateISO===todayISO()); bFreeze.onclick=()=> useFreezeToday(ex);
+
+    bDelete.onclick=()=> confirmDialog({ title:'Delete exercise?', body:'This action cannot be undone.', confirmText:'Delete', onConfirm: ()=>{ state.exercises = state.exercises.filter(e=>e.id!==ex.id); save(); render(); } });
+
+    // PR/Goal boxes + progress
+    const rowPG=el('div','grid'); rowPG.style.gridTemplateColumns='1fr 1fr'; rowPG.style.gap='8px';
+    const boxPR=newBox('PR', ex.pr? `${ex.pr.value} ${ex.pr.unit}`:'—');
+    const boxGoal=newBox('Goal', ex.goal? `${ex.goal.value} ${ex.goal.unit}`:'—');
+    rowPG.append(boxPR,boxGoal);
+    if(ex.goal){ const prVal=(ex.pr && ex.pr.unit===ex.goal.unit)? ex.pr.value:0; const pct=Math.max(0,Math.min(100,Math.round((prVal/ex.goal.value)*100))); const wrap=el('div'); const head=el('div','row'); head.style.justifyContent='space-between'; head.innerHTML=`<span class="muted-sm">Progress</span><span class="muted-sm">${pct}%</span>`; const bar=el('div','progress'); const span=el('span'); span.style.width=pct+'%'; bar.appendChild(span); wrap.append(head,bar); det.appendChild(wrap); }
+
+    const last=el('div'); last.appendChild(el('div','muted-sm')).textContent='Last 5 entries'; const cont=el('div','grid'); const logs=[...ex.logs].sort((a,b)=> a.dateISO<b.dateISO?1:-1).slice(0,5); if(logs.length===0){ const none=el('div','muted-sm'); none.textContent='No entries yet.'; cont.appendChild(none);} else { logs.forEach(l=>{ const r=el('div','row'); const detail=l.weight!=null? (l.weight+' kg') : (l.value+' '+(ex.metricType==='reps'?'reps':'sec')); r.innerHTML=`<span class="muted-sm">${fmtLabel(l.dateISO)}</span><span class="muted-sm">${detail}</span>`; cont.appendChild(r); }); } last.appendChild(cont);
+
+    det.append(eName,eDesc,rowCat,rowMetric,rowGoal,rowInputs,rowActions,rowPG,last); card.appendChild(det);
+
+    bEdit.onclick=()=>{ const show=det.style.display==='none'; det.style.display=show?'grid':'none'; bEdit.textContent=show?'Hide':'Edit'; };
+    bTrack.onclick=()=> openTrackModal(ex);
+
+    return card;
+  }
+
+  function newBox(k,v){ const b=el('div','card'); b.style.padding='12px'; const kEl=el('div','muted-sm'); kEl.textContent=k; const vEl=el('div'); vEl.style.fontWeight='800'; vEl.textContent=v; b.append(kEl,vEl); return b; }
+
+  function logToday(ex,{value,weight}){
+    const t=todayISO();
+    const found=ex.logs.find(l=>l.dateISO===t);
+    if(found){ found.value=value; found.weight=(weight!=null? weight:null); }
+    else { ex.logs.push({dateISO:t,value,weight:(weight!=null? weight:null)}); }
+    const useWeight=(weight!=null && weight!==''); const unit=useWeight?'kg':(ex.metricType==='reps'?'reps':'sec'); const val=useWeight? Number(weight): Number(value||0);
+    if(!ex.pr || ex.pr.unit!==unit || val>ex.pr.value) ex.pr={value:val, unit:unit};
+    save(); render(); showToast(ex.name+' logged!', useWeight? (val+' kg') : (val+' '+unit));
+  }
+
+  function useFreezeToday(ex){ const t=todayISO(); if((ex.streak?.freezeTokens||0)<=0) return; if(ex.logs.some(l=>l.dateISO===t)) return; const set=new Set(ex.streak?.frozenDates||[]); if(set.has(t)) return; set.add(t); ex.streak.frozenDates=[...set]; ex.streak.freezeTokens=(ex.streak.freezeTokens||0)-1; save(); render(); }
+
+  // Track Modal logic
+  let trackTarget=null;
+  function openTrackModal(ex){
+    trackTarget=ex; const m=$('#trackModal');
+    $('#trackFor').textContent= ex.name + ' · ' + (ex.metricType==='reps'?'Reps':'Seconds');
+    const p=$('#trackPrimary'), w=$('#trackWeight'); p.value=''; w.value=''; p.placeholder=(ex.metricType==='reps'?'Reps':'Seconds');
+    function close(){ m.classList.remove('show'); $('#trackSave').onclick=null; $('#trackCancel').onclick=null; }
+    $('#trackCancel').onclick=close;
+    $('#trackSave').onclick=()=>{ const val=Number(p.value||0); const weight=(w.value!==''? Number(w.value):undefined); logToday(trackTarget,{value:val,weight}); close(); punch(); };
+    m.classList.add('show');
+  }
+
+  function viewLog(){
+    const wrap=el('div','grid'); let monthOffset=0;
+    const top=el('div','row'); const btnPrev=button('<','btn-ghost'); const ttl=el('div'); ttl.style.fontWeight='800'; const btnNext=button('>','btn-ghost'); top.append(btnPrev,ttl,btnNext); wrap.appendChild(top);
+    const daysHeader=el('div','calendar'); ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d=>{ const x=el('div','muted-sm'); x.style.textAlign='center'; x.textContent=d; daysHeader.appendChild(x); }); wrap.appendChild(daysHeader);
+    const grid=el('div','card'); const cal=el('div','calendar'); grid.appendChild(cal); wrap.appendChild(grid);
+    function draw(){ const ref=new Date(); ref.setMonth(ref.getMonth()+monthOffset); ttl.textContent=ref.toLocaleDateString(undefined,{month:'long',year:'numeric'}); const y=ref.getFullYear(), m=ref.getMonth(); const first=new Date(y,m,1); const days=new Date(y,m+1,0).getDate(); const start=(first.getDay()+6)%7; const map={}; state.exercises.forEach(ex=> ex.logs.forEach(l=>{ (map[l.dateISO]=map[l.dateISO]||[]).push({name:ex.name, detail: l.weight!=null? (l.weight+' kg') : (l.value+' '+(ex.metricType==='reps'?'reps':'sec'))}); })); cal.innerHTML=''; for(let i=0;i<start;i++) cal.appendChild(el('div')); for(let d=1; d<=days; d++){ const iso=localISO(new Date(y,m,d)); const items=map[iso]||[]; const cell=el('div','cal-day'+(items.length?' hot':'')); if(iso===todayISO()) cell.style.boxShadow='0 0 0 2px var(--hi) inset'; const num=el('div','num'); num.textContent=d; const names=el('div','names'); names.textContent=items.slice(0,3).map(x=>x.name).join(', ')+(items.length>3?'…':''); cell.append(num,names); cell.onclick=()=> showDayModal(iso,items); cal.appendChild(cell);} }
+    btnPrev.onclick=()=>{ monthOffset--; draw(); };
+    btnNext.onclick=()=>{ monthOffset++; draw(); };
+    draw(); return wrap;
+  }
+
+  function viewGoals(){
+    const wrap=el('div','grid'); const list=[]; state.exercises.forEach(ex=>{ if(ex.goal){ const prVal=(ex.pr && ex.pr.unit===ex.goal.unit)? ex.pr.value:0; const pct=Math.max(0,Math.min(100,Math.round((prVal/ex.goal.value)*100))); list.push({ex,pct}); } }); list.sort((a,b)=> b.pct-a.pct); if(list.length===0){ const t=el('div','muted-sm'); t.textContent='No goals yet. Add a goal on an exercise.'; wrap.appendChild(t); return wrap; } list.forEach(({ex,pct})=>{ const c=el('div','card'); const head=el('div','row'); const left=el('div'); left.innerHTML=`<div style="font-weight:800">${ex.name}</div><div class="muted-sm">PR ${ex.pr? ex.pr.value+' '+ex.pr.unit:'—'} · Goal ${ex.goal.value} ${ex.goal.unit}</div>`; const badge=el('span','pill'); badge.textContent=pct+'%'; head.append(left,badge); const bar=el('div','progress'); const span=el('span'); span.style.width=pct+'%'; bar.appendChild(span); c.append(head, el('div')); c.lastChild.style.marginTop='8px'; c.lastChild.appendChild(bar); wrap.appendChild(c); }); return wrap;
+  }
+
+  function viewSettings(){
+    const wrap=el('div','grid');
+    const c1=el('div','card'); c1.appendChild(title('Categories'));
+    const grid=el('div','grid');
+    function drawCats(){ grid.innerHTML=''; state.categories.forEach((c,idx)=>{ const r=el('div','row'); const name=el('span','muted'); name.textContent=c; const del=button('Delete','btn-outline'); del.onclick=()=>{ state.categories.splice(idx,1); save(); render(); }; r.append(name,del); grid.appendChild(r); }); }
+    drawCats();
+    const addRow=el('div','row-gap'); const inp=el('input'); inp.placeholder='New category'; const addBtn=button('Add'); addBtn.onclick=()=>{ let v=inp.value.trim(); if(!v) return; const exists=state.categories.some(x=>x.toLowerCase()===v.toLowerCase()); if(!exists) state.categories.push(v); inp.value=''; save(); render(); }; addRow.append(inp,addBtn);
+    c1.appendChild(grid); c1.appendChild(addRow);
+
+    const c2=el('div','card'); c2.appendChild(title('Backup & Reset')); const row=el('div','row-gap'); const bExp=button('Export JSON','btn-outline'); const bReset=button('Reset','btn-outline'); row.append(bExp,bReset); c2.appendChild(row); const hint=el('div','muted-sm'); hint.textContent='Your data is stored locally (localStorage).'; c2.appendChild(hint);
+    bExp.onclick=()=>{ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`trackit-backup-${todayISO()}.json`; a.click(); URL.revokeObjectURL(url); };
+    bReset.onclick=()=>{ if(confirm('Reset all data?')){ localStorage.removeItem(LS_KEY); location.reload(); } };
+
+    wrap.append(c1,c2); return wrap;
+  }
+
+  function title(t){ const x=el('div'); x.style.fontWeight='800'; x.textContent=t; return x; }
+  function punch(){ const e=el('div'); e.style.position='fixed'; e.style.left='50%'; e.style.top='55%'; e.style.transform='translate(-50%,-50%)'; e.style.fontSize='64px'; e.textContent='💥'; e.style.pointerEvents='none'; document.body.appendChild(e); setTimeout(()=>e.remove(),520); }
+
+  function confirmDialog({title,body,confirmText='Confirm',onConfirm}){ $('#modal-title').textContent=title; $('#modal-body').textContent=body; $('#modal-confirm').textContent=confirmText; const close=()=> $('#modal').classList.remove('show'); const ok=()=>{ close(); onConfirm&&onConfirm(); cleanup(); }; function cleanup(){ $('#modal-confirm').removeEventListener('click', ok); $('#modal-cancel').removeEventListener('click', close); } $('#modal-confirm').addEventListener('click', ok); $('#modal-cancel').addEventListener('click', close); $('#modal').classList.add('show'); }
+  function showDayModal(iso,items){ const body=$('#dayModalBody'); body.innerHTML=''; if(items.length===0){ const d=document.createElement('div'); d.className='muted'; d.textContent='No exercises logged.'; body.appendChild(d); } else { items.forEach(x=>{ const r=document.createElement('div'); r.className='row'; r.innerHTML=`<span>${x.name}</span><span class="muted-sm">${x.detail}</span>`; body.appendChild(r); }); } const h=document.createElement('div'); h.className='muted-sm'; h.textContent=fmtLabel(iso); body.prepend(h); const close=()=> $('#dayModal').classList.remove('show'); $('#dayModalClose').onclick=close; $('#dayModal').classList.add('show'); }
+
+  function render(){ renderTabs(); const mount=$('#view'); mount.innerHTML=''; if(state.ui.tab==='Exercises') mount.appendChild(viewExercises()); if(state.ui.tab==='Log') mount.appendChild(viewLog()); if(state.ui.tab==='Goals') mount.appendChild(viewGoals()); if(state.ui.tab==='Settings') mount.appendChild(viewSettings()); }
+
+  // boot
+  render();
+})();
+</script>
+</body>
+</html>
